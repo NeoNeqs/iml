@@ -5,8 +5,9 @@ set(CMAKE_CXX_STANDARD 23)
 add_compile_definitions(DEBUG)
 
 add_executable(iml main.cpp
-        Lexer.cpp
-        Lexer.hpp
-        lex_utils.cpp
-        lex_utils.hpp
+        iml_lexer.cpp
+        iml_lexer.hpp
+        iml_lex_utils.cpp
+        iml_lex_utils.hpp
+        iml_debug.h
 )

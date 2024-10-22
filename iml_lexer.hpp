@@ -4,6 +4,7 @@
 #include <functional>
 #include <string>
 #include <vector>
+#include <string_view>
 
 namespace iml {
     class Lexer {
@@ -60,37 +61,35 @@ namespace iml {
             };
 
             Kind kind;
-            std::string name;
-
-            constexpr bool operator==(const Kind p_kind) const {
-                return kind == p_kind;
-            }
+            std::string_view name;
         };
 
     private:
         // 2.3 is good for the start, needs to recalibrated with more data
-        static constexpr float CharactersToTokensRation = 2.3;
+        static constexpr double CharactersToTokensRation = 2.3;
 
-        std::string data;
-        std::vector<Token> tokens;
+        std::string_view data;
         int64_t position;
 
     public:
-        void tokenize();
-        void print();
+        std::vector<Token> tokenize();
 
-        template<typename T>
-            requires std::convertible_to<T, std::string>
-        explicit Lexer(T &&p_data) : data{std::forward<T>(p_data)}, position{0} {
-            data.reserve(p_data.size() / CharactersToTokensRation);
+        explicit Lexer(const std::string &p_data) : data(p_data), position(0) {
         }
 
+        explicit Lexer(std::string &&data) = delete;
+        explicit Lexer(const std::string &&data) = delete;
+
     private:
-        void scan();
+        Token scan();
+
+        Token make_special_token();
+        Token make_numeric_literal();
+
         void advance();
 
-        [[nodiscard]] std::string make_token(const int64_t begin_pos) const {
-            return data.substr(begin_pos, position - begin_pos + 1);
+        [[nodiscard]] std::string_view make_token(const std::string_view from, const int64_t begin_pos) const {
+            return from.substr(begin_pos, position - begin_pos + 1);
         }
 
         void skip_until(const std::function<bool(char)> &predicate) {
@@ -113,13 +112,6 @@ namespace iml {
             }
 
             return data[position + p_offset];
-        }
-
-        [[nodiscard]] Token get_last_token() const {
-            if (tokens.empty()) {
-                return {Token::Kind::Empty};
-            }
-            return tokens.back();
         }
     };
 }

@@ -1,8 +1,21 @@
 #include <fstream>
-#include <iostream>
+#include <ranges>
 #include <sstream>
 
-#include "Lexer.hpp"
+#include "iml_lexer.hpp"
+
+#include "iml_debug.h"
+
+static size_t allocs = 0;
+
+void *operator new(size_t size) {
+    ++allocs;
+    return malloc(size);
+}
+
+void operator delete(void *data) {
+    free(data);
+}
 
 
 int main() {
@@ -11,10 +24,14 @@ int main() {
     std::stringstream buffer;
     buffer << iml_file.rdbuf();
     buffer << '\n';
-    iml::Lexer lexer(buffer.str());
-    lexer.tokenize();
-    iml_file.close();
 
-    lexer.print();
+    const std::string &d = buffer.str();
+    iml::Lexer lexer(d);
+
+    const std::vector<iml::Lexer::Token> &tokens = lexer.tokenize();
+    iml::print(tokens);
+    iml_file.close();
+    iml::print_fmt("Allocs: {}\n", allocs);
+    iml::print_fmt("Tokens count: {}\n", tokens.size());
     return 0;
 }
