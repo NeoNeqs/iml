@@ -1,5 +1,5 @@
-#ifndef LEXER_H
-#define LEXER_H
+#ifndef IML_LEXER_H
+#define IML_LEXER_H
 
 #include <functional>
 #include <string>
@@ -115,4 +115,4 @@ namespace iml {
         }
     };
 }
-#endif // LEXER_H
+#endif // IML_LEXER_H

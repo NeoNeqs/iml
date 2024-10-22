@@ -1,5 +1,5 @@
-#ifndef LEX_UTILS_H
-#define LEX_UTILS_H
+#ifndef IML_LEX_UTILS_H
+#define IML_LEX_UTILS_H
 
 namespace iml {
     bool is_letter(char c);
@@ -11,4 +11,4 @@ namespace iml {
     bool is_valid_identifier(char c);
 }
 
-#endif //LEX_UTILS_H
+#endif //IML_LEX_UTILS_H
