@@ -2,14 +2,13 @@
 #define IML_LEXER_H
 
 #include <functional>
-#include <iostream>
-#include <ostream>
 #include <string>
 #include <vector>
 #include <string_view>
 
 namespace iml {
     class Lexer {
+
     public:
         struct Token {
             enum class Kind {
@@ -65,11 +64,23 @@ namespace iml {
             Kind kind;
             std::string_view name;
 
-            explicit Token(Kind kind,
+            explicit Token(const Kind kind,
                            const std::string_view p_name = std::string_view("")) : kind(kind) {
                 name = p_name;
             }
         };
+
+        std::vector<Token> tokenize();
+
+        // Constructor converts p_data to `std::string_view`. Those 2 are deleted to ensure the data pointed to by
+        // `std::string_view` doesn't go out of scope when p_data goes out of scope (which would be the case if a
+        // temporary is passed)
+        explicit Lexer(std::string &&p_data) = delete;
+        explicit Lexer(const std::string &&p_data) = delete;
+
+        explicit Lexer(const std::string &p_data) noexcept : data(p_data),
+                                                             position(0),
+                                                             EmptyToken(Token::Kind::Empty) {}
 
     private:
         // 2.3 is good for the start, needs to recalibrated with more data
@@ -77,24 +88,20 @@ namespace iml {
 
         std::string_view data;
         int64_t position;
+
         Token EmptyToken;
 
-    public:
-        std::vector<Token> tokenize();
-
-        explicit Lexer(const std::string &p_data) : data(p_data), position(0), EmptyToken(Token::Kind::Empty) {
-        }
-
-        explicit Lexer(std::string &&data) = delete;
-        explicit Lexer(const std::string &&data) = delete;
-
-    private:
         Token next();
-
         Token make_special_token();
         Token make_numeric_literal();
 
-        void advance();
+        void advance() {
+            if (position >= data.size()) {
+                return;
+            }
+
+            ++position;
+        }
 
         [[nodiscard]] std::string_view make_token(const int64_t begin_pos) const {
             return data.substr(begin_pos, position - begin_pos + 1);

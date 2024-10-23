@@ -170,11 +170,5 @@ namespace iml {
         return Token(Token::Kind::Literal, make_token(token_begin));
     }
 
-    void Lexer::advance() {
-        if (position >= data.size()) {
-            return;
-        }
 
-        ++position;
-    }
 }
