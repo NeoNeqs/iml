@@ -11,7 +11,8 @@ namespace iml {
         tokens.reserve(static_cast<std::size_t>(static_cast<double>(data.size()) / CharactersToTokensRation));
 
         while (true) {
-            const Token &token = scan();
+            const Token &token = next();
+            advance();
 
             if (token.kind == Token::Kind::EoF) {
                 tokens.emplace_back(token);
@@ -26,104 +27,126 @@ namespace iml {
         return tokens;
     }
 
-    Lexer::Token Lexer::scan() {
-        Token token;
-
+    Lexer::Token Lexer::next() {
         const char current_char = peek(0);
         if (current_char == '\0') {
-            token = Token(Token::Kind::EoF);
-        } else if (current_char == ';') {
-            token = Token(Token::Kind::EoS);
-        } else if (current_char == ',') {
-            token = Token(Token::Kind::Comma);
-        } else if (current_char == '<') {
+            return Token(Token::Kind::EoF);
+        }
+
+        if (current_char == ';') {
+            return Token(Token::Kind::EoS);
+        }
+
+        if (current_char == ',') {
+            return Token(Token::Kind::Comma);
+        }
+
+        if (current_char == '<') {
             if (peek(1) == '=') {
                 advance();
-                token = Token(Token::Kind::OperatorLessEqual);
-            } else {
-                token = Token(Token::Kind::OperatorLess);
+                return Token(Token::Kind::OperatorLessEqual);
             }
-        } else if (current_char == '>') {
+            return Token(Token::Kind::OperatorLess);
+        }
+
+        if (current_char == '>') {
             if (peek(1) == '=') {
                 advance();
-                token = Token(Token::Kind::OperatorGreaterEqual);
-            } else {
-                token = Token(Token::Kind::OperatorGreater);
+                return Token(Token::Kind::OperatorGreaterEqual);
             }
-        } else if (is_letter(current_char) || current_char == '_') {
-            token = make_special_token();
-        } else if (current_char == '=') {
+            return Token(Token::Kind::OperatorGreater);
+        }
+
+        if (is_letter(current_char) || current_char == '_') {
+            return make_special_token();
+        }
+
+        if (current_char == '=') {
             if (peek(1) == '=') {
                 advance();
-                token = Token(Token::Kind::OperatorEqual);
-            } else {
-                token = Token(Token::Kind::OperatorAssignment);
+                return Token(Token::Kind::OperatorEqual);
             }
-        } else if (is_digit(current_char)) {
-            token = make_numeric_literal();
-        } else if (current_char == '(') {
-            token = Token(Token::Kind::ParenthesisOpen);
-        } else if (current_char == ')') {
-            token = Token(Token::Kind::ParenthesisClose);
-        } else if (current_char == '{') {
-            token = Token(Token::Kind::BraceOpen);
-        } else if (current_char == '}') {
-            token = Token(Token::Kind::BraceClose);
-        } else if (current_char == '[') {
-            token = Token(Token::Kind::BracketOpen);
-        } else if (current_char == ']') {
-            token = Token(Token::Kind::BracketClose);
-        } else if (current_char == '+') {
+            return Token(Token::Kind::OperatorAssignment);
+        }
+
+        if (is_digit(current_char)) {
+            return make_numeric_literal();
+        }
+
+        if (current_char == '(') {
+            return Token(Token::Kind::ParenthesisOpen);
+        }
+
+        if (current_char == ')') {
+            return Token(Token::Kind::ParenthesisClose);
+        }
+
+        if (current_char == '{') {
+            return Token(Token::Kind::BraceOpen);
+        }
+
+        if (current_char == '}') {
+            return Token(Token::Kind::BraceClose);
+        }
+
+        if (current_char == '[') {
+            return Token(Token::Kind::BracketOpen);
+        }
+
+        if (current_char == ']') {
+            return Token(Token::Kind::BracketClose);
+        }
+
+        if (current_char == '+') {
             if (peek(1) == '+') {
                 advance();
-                token = Token(Token::Kind::OperatorIncrement);
-            } else {
-                token = Token(Token::Kind::OperatorPlus);
+                return Token(Token::Kind::OperatorIncrement);
             }
-        } else if (current_char == '-') {
+            return Token(Token::Kind::OperatorPlus);
+        }
+
+        if (current_char == '-') {
             if (peek(1) == '-') {
                 advance();
-                token = Token(Token::Kind::OperatorDecrement);
-            } else {
-                token = Token(Token::Kind::OperatorMinus);
+                return Token(Token::Kind::OperatorDecrement);
             }
-        } else if (current_char == '*') {
-            token = Token(Token::Kind::OperatorStar);
-        } else if (current_char == '/') {
-            token = Token(Token::Kind::OperatorSlash);
-        } else {
-            if (current_char != '\n' && current_char != ' ') {
-                std::cout << "Unknown (code, char): (" << static_cast<int>(current_char) << ", " << current_char << ")"
-                        << std::endl;
-            }
-            token = Token(Token::Kind::Empty);
+            return Token(Token::Kind::OperatorMinus);
         }
-        advance();
 
-        return token;
+        if (current_char == '*') {
+            return Token(Token::Kind::OperatorStar);
+        }
+
+        if (current_char == '/') {
+            return Token(Token::Kind::OperatorSlash);
+        }
+
+        if (current_char != '\n' && current_char != ' ') {
+            std::cout << "Unknown (code, char): (" << static_cast<int>(current_char) << ", " << current_char << ")"
+                    << std::endl;
+        }
+        return EmptyToken;
     }
 
     Lexer::Token Lexer::make_special_token() {
-        Token token;
-
         const int64_t begin_pos = position;
 
         skip_until(is_valid_identifier);
 
-        const std::string_view token_name = make_token(data, begin_pos);
+        const std::string_view token_name = make_token(begin_pos);
         if (token_name == "if") {
-            token = Token(Token::Kind::If);
-        } else if (token_name == "for") {
-            token = Token(Token::Kind::For);
-        } else if (token_name == "func") {
-            token = Token(Token::Kind::Function);
-        } else if (token_name == "false" || token_name == "true") {
-            token = Token(Token::Kind::Literal, token_name);
-        } else {
-            token = Token(Token::Kind::Identifier, token_name);
+            return Token(Token::Kind::If);
         }
-
-        return token;
+        if (token_name == "for") {
+            return Token(Token::Kind::For);
+        }
+        if (token_name == "func") {
+            return Token(Token::Kind::Function);
+        }
+        if (token_name == "false" || token_name == "true") {
+            return Token(Token::Kind::Literal, token_name);
+        }
+        return Token(Token::Kind::Identifier, token_name);
     }
 
     Lexer::Token Lexer::make_numeric_literal() {
@@ -145,7 +168,7 @@ namespace iml {
             skip_until(is_decimal);
         }
 
-        return Token(Token::Kind::Literal, make_token(data, token_begin));
+        return Token(Token::Kind::Literal, make_token(token_begin));
     }
 
     void Lexer::advance() {

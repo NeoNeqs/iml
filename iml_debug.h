@@ -5,8 +5,6 @@
 #include <iostream>
 #include <vector>
 
-#include "iml_lexer.hpp"
-
 namespace iml {
     static constexpr std::string token_names[] = {
         "Empty",

@@ -2,6 +2,8 @@
 #define IML_LEXER_H
 
 #include <functional>
+#include <iostream>
+#include <ostream>
 #include <string>
 #include <vector>
 #include <string_view>
@@ -62,6 +64,11 @@ namespace iml {
 
             Kind kind;
             std::string_view name;
+
+            explicit Token(Kind kind,
+                           const std::string_view p_name = std::string_view("")) : kind(kind) {
+                name = p_name;
+            }
         };
 
     private:
@@ -70,26 +77,27 @@ namespace iml {
 
         std::string_view data;
         int64_t position;
+        Token EmptyToken;
 
     public:
         std::vector<Token> tokenize();
 
-        explicit Lexer(const std::string &p_data) : data(p_data), position(0) {
+        explicit Lexer(const std::string &p_data) : data(p_data), position(0), EmptyToken(Token::Kind::Empty) {
         }
 
         explicit Lexer(std::string &&data) = delete;
         explicit Lexer(const std::string &&data) = delete;
 
     private:
-        Token scan();
+        Token next();
 
         Token make_special_token();
         Token make_numeric_literal();
 
         void advance();
 
-        [[nodiscard]] std::string_view make_token(const std::string_view from, const int64_t begin_pos) const {
-            return from.substr(begin_pos, position - begin_pos + 1);
+        [[nodiscard]] std::string_view make_token(const int64_t begin_pos) const {
+            return data.substr(begin_pos, position - begin_pos + 1);
         }
 
         void skip_until(const std::function<bool(char)> &predicate) {
