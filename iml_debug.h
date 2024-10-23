@@ -70,10 +70,10 @@ namespace iml {
                 print_fmt("[\"{}\"]", token_names[static_cast<int>(kind)]);
             }
             if (kind == Lexer::Token::Kind::EoS) {
-                std::cout << std::endl;
+                std::cout << '\n';
             }
         }
-        std::cout << std::endl;
+        std::cout << '\n';
     }
 }
 

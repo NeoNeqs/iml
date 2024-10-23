@@ -122,8 +122,7 @@ namespace iml {
         }
 
         if (current_char != '\n' && current_char != ' ') {
-            std::cout << "Unknown (code, char): (" << static_cast<int>(current_char) << ", " << current_char << ")"
-                    << std::endl;
+            std::cout << "Unknown (code, char): (" << static_cast<int>(current_char) << ", " << current_char << ")\n";
         }
         return EmptyToken;
     }
